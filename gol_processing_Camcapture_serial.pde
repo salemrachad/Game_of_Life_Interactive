@@ -26,6 +26,25 @@ void setup() {
 void draw() {
 }
 
+
+void initializeCam() {
+  String[] cameras = Capture.list();
+
+  if (cameras.length == 0) {
+    println("There are no cameras available for capture.");
+    exit();
+  } else {
+    println("Available cameras:");
+    for (int i = 0; i < cameras.length; i++) {
+      println(cameras[i]);
+    }
+    // The camera can be initialized directly using an 
+    // element from the array returned by list():
+    cam = new Capture(this, cameras[11]);
+    cam.start();
+  }
+}
+
 //Get the average RGB from pixels
 
 color extractColorFromImage(PImage img) {
@@ -54,34 +73,22 @@ color extractColorFromImage(PImage img) {
         g=0;
         b=0;
         ProcessingledMatrix[i][j] = 1;
+        myPort.write('1');
+        
       } else if (sum>BWrez) {
         r=255;
         g=255;
         b=255;
         ProcessingledMatrix[i][j] = 0;
+        myPort.write('0');
       }
     }
   }
   return color(r, g, b);
 }
 
-void initializeCam() {
-  String[] cameras = Capture.list();
 
-  if (cameras.length == 0) {
-    println("There are no cameras available for capture.");
-    exit();
-  } else {
-    println("Available cameras:");
-    for (int i = 0; i < cameras.length; i++) {
-      println(cameras[i]);
-    }
-    // The camera can be initialized directly using an 
-    // element from the array returned by list():
-    cam = new Capture(this, cameras[11]);
-    cam.start();
-  }
-}
+
 void processImage() {
   PImage img = loadImage("C:/Users/racha/desktop/image/silh_1.jpg");
 
@@ -134,17 +141,17 @@ void keyPressed() {
 //myPort.write(out);
 //}  
 
-void sendtoArduino() {
-  for (int i=0; i<ledxnumber; i++) {
-    for (int j=0; j<ledynumber; j++) {
-      if (i > 0) {
-        str += ",";//We add a comma before each value, except the first value
-      }
-      str += ProcessingledMatrix[i][j];//We concatenate each number in the string.
-    }
-    myPort.write(str);
-  }
-}
+//void sendtoArduino() {
+//  for (int i=0; i<ledxnumber; i++) {
+//    for (int j=0; j<ledynumber; j++) {
+//      if (i > 0) {
+//        str += ",";//We add a comma before each value, except the first value
+//      }
+//      str += ProcessingledMatrix[i][j];//We concatenate each number in the string.
+//    }
+//    myPort.write(str);
+//  }
+//}
 
 /*
 for(int i = 0; i < 16; i++){
