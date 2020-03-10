@@ -88,13 +88,14 @@ void setup() {
   if (Serial) {
     digitalWrite(ledPin11, HIGH);
   }
-  portTest();
+  //portTest();
   //initializeCells();
   //initializefromPort22();
 }
 
 void loop() {
 
+  portTest();
   pauseButton();
   resetButton();
   offonPauseG();
@@ -116,23 +117,14 @@ void statePlot() {
       if (array1[i][j] == 1) {
         // fill(alive); // If alive
         m.setDot(j, i, true);
-        // Serial.print(array1[i][j]);
-        // Serial.print("  ");
       }
       else {
         // fill(dead); // If dead
         m.setDot(j, i, false);
-        //Serial.print(array1[i][j]);
-        // Serial.print("  ");
       }
     }
-    // Serial.println("");
   }
-  //Serial.println("");
-  //Serial.println("");
 }
-
-//Creating a new duplicate array and operating on it so we keep the other intact
 
 void iteration() {
   for (int i = 0; i < cols; i++) {
@@ -185,7 +177,6 @@ void proxibrightness() {
   } else if (average > 400) {
     average = 400;
   }
-  //Serial.println(average);
 
   //mapping reverse range for bright to be at max when close and minimum at far.
   //bright = map(a,0,400,12 ,0);
@@ -203,53 +194,27 @@ void proxibrightness() {
     }
   }
   m.setIntensity(bright);
-  //Serial.println(a);
-}
-
-void initializeCells() {
-
-  for (int i = 0; i < cols; i++) {
-    for (int j = 0; j < rows; j++) {
-      float state = random (100);
-      if (state > Probability) {
-        state = 0;
-      }
-      else {
-        state = 1;
-      }
-      array1[i][j] = int(state); // Save state of each cell
-    }
-  }
 }
 
 void portTest() {
 
   pinMode(ledPin9, OUTPUT);
 
-  //  RECEIVE DATA FROM PROCESSING CODE TO USE
-  // Wiring/Arduino code:
-
   while (Serial.available()) { // If data is available to read,
-    serVal += Serial.read();
+    serVal = Serial.read();
   }
   for (int i = 0; i < cols; i++) {
     for (int j = 0; j < rows; j++) {
-      int index = serVal.indexOf(","); //We find the next comma
-      array1[i][j] = atol(serVal.substring(0, index).c_str());
-      serVal = serVal.substring(index + 1); //Remove the number from the string
+      int state=0;
+      if (serVal == 1) {
+        state = 1;
+      } else if (serVal == 0) {
+        state = 0;
+      }
+      array1[i][j] = int(state);
     }
   }
-//    if (serVal == 'r') {
-//      digitalWrite(ledPin9, HIGH);
-//      delay(150);
-//      digitalWrite(ledPin9, LOW);
-//      serVal = "";
-//    }
-//    else {
-//      digitalWrite(ledPin9, LOW);
-//    }
 }
-
 
 void pauseButton() {
   pinMode(ledPin5, OUTPUT);
@@ -301,7 +266,7 @@ void resetButton() {
 
       // only toggle Pause if the new button state is HIGH
       if (buttonState10 == HIGH) {
-        initializeCells();
+        //initializeCells();
         //Serial.print("Reset");
       }
     }
@@ -319,5 +284,49 @@ void offonPauseG() {
   }
 }
 
+
+//void initializeCells() {
+//
+//  for (int i = 0; i < cols; i++) {
+//    for (int j = 0; j < rows; j++) {
+//      float state = random (100);
+//      if (state > Probability) {
+//        state = 0;
+//      }
+//      else {
+//        state = 1;
+//      }
+//      array1[i][j] = int(state); // Save state of each cell
+//    }
+//  }
+//}
+
+//void portTest() {       test1
+//
+//  pinMode(ledPin9, OUTPUT);
+//
+//  //  RECEIVE DATA FROM PROCESSING CODE TO USE
+//  // Wiring/Arduino code:
+//
+//  while (Serial.available()) { // If data is available to read,
+//    serVal += Serial.read();
+//  }
+//  for (int i = 0; i < cols; i++) {
+//    for (int j = 0; j < rows; j++) {
+//      int index = serVal.indexOf(","); //We find the next comma
+//      array1[i][j] = atol(serVal.substring(0, index).c_str());
+//      serVal = serVal.substring(index + 1); //Remove the number from the string
+//    }
+//  }
+////    if (serVal == 'r') {
+////      digitalWrite(ledPin9, HIGH);
+////      delay(150);
+////      digitalWrite(ledPin9, LOW);
+////      serVal = "";
+////    }
+////    else {
+////      digitalWrite(ledPin9, LOW);
+////    }
+//}
 /* TEMP
 */
