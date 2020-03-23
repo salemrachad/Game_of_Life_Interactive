@@ -1,21 +1,50 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include <Adafruit_NeoPixel.h>
+
+//DEFINE MATRIX 32x32
+#define WIDTH 32
+#define HEIGHT 32
+#define PIN 6
+#define NUMPIXELS 1024
+
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+//color of the dots ({red, green, blue} max value 255 each]
+int colorOfPattern[3] = {30, 0, 30};
+//color of background
+int colorOfBackground[3] = {0, 0, 10};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include <SPI.h>
-#include <MaxMatrix.h>
 
+int trigPin = 12;
+int echoPin = 13;
 
-//Proximity sensor setup
-#include "SR04.h"
-#define TRIG_PIN 12
-#define ECHO_PIN 13
-
-SR04 sr04 = SR04(ECHO_PIN, TRIG_PIN);
+// function prototype to define default timeout value
+static unsigned int newPulseIn(const byte pin, const byte state, const unsigned long timeout = 1000000L);
+// using a macro to avoid function call overhead
+#define WAIT_FOR_PIN_STATE(state) \
+  while (digitalRead(pin) != (state)) { \
+    if (micros() - timestamp > timeout) { \
+      return 0; \
+    } \
+  }
+static unsigned int newPulseIn(const byte pin, const byte state, const unsigned long timeout) {
+  unsigned long timestamp = micros();
+  WAIT_FOR_PIN_STATE(!state);
+  WAIT_FOR_PIN_STATE(state);
+  timestamp = micros();
+  WAIT_FOR_PIN_STATE(!state);
+  return micros() - timestamp;
+}
 long a;
 
-//Pin Setup
-int DIN = 7;
-int CLK = 8;
-int CS = 4;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Pause Button Setup
+
 const int buttonPin = 2;
 const int buttonPin10 = 10;
 
@@ -29,116 +58,88 @@ int lastButtonState10 = LOW;
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //LED Setup
-const int ledPin9 = 9;      // the number of the LED pin
-const int ledPin3 = 3;      // the number of the LED pin
-const int ledPin5 = 5;      // the number of the LED pin
-const int ledPin11 = 11;      // the number of the LED pin
-int ledState11 = LOW;
-int ledState9 = LOW ;
+
+const int ledPin9 = 9;
+const int ledPin3 = 3;
+const int ledPin5 = 5;
+
+int ledState9 = LOW;
 int ledState3 = LOW;
 int ledState5 = LOW;
 
-//Value for Serial
-String serVal;
-
-//Number of displays in use
-int maxInUse = 4;
-
-//2d array
-const int rows = 32;
-const int cols = 8;
-
-boolean array1[rows][cols] ;
-boolean cellbuffer[rows][cols];
-
 //brightness of the led
+
 int bright;
 
-// How likely for a cell to be alive at start (in percentage
-float Probability = 40;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boolean pause = false;
+//2d array
+
+boolean array1[WIDTH][HEIGHT] ;
+boolean cellbuffer[WIDTH][HEIGHT];
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Probability
+
+float Probability = 45;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Variables for timer
 
-int interval = 100;
+boolean pause = false;
+int interval = 165;
 int lastRecordedTime = 0;
 
-MaxMatrix m(DIN, CS, CLK, maxInUse); // using MaxMatrix Library
-
-// Test 1
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
-
-
-  Serial.begin(9600);
-  pinMode(buttonPin, INPUT);
-  pinMode(buttonPin10, INPUT);
-  pinMode(ledPin11, OUTPUT);
-
-  m.init(); //Starting Dot Matrix
-
-  while (!Serial) {
-    digitalWrite(ledPin11, HIGH);
-    delay(150);
-    digitalWrite(ledPin11, LOW);
-    delay(150);
-  }
-  if (Serial) {
-    digitalWrite(ledPin11, HIGH);
-  }
-  //portTest();
-  //initializeCells();
-  //initializefromPort22();
+  //Starting Dot Matrix
+  pixels.begin();
+  pixels.show();
+  initializeCells();
 }
 
 void loop() {
 
-  portTest();
   pauseButton();
   resetButton();
   offonPauseG();
-  //onkeypressed();
-
-  proxibrightness();
-  if (millis() - lastRecordedTime > interval) {
-    if (!pause) {
-      iteration();
-      statePlot();
-      lastRecordedTime = millis();
-    }
-  }
+  pauseGame();
+   
 }
 
-void statePlot() {
-  for (int i = 0; i < cols; i++) {
-    for (int j = 0; j < rows; j++) {
-      if (array1[i][j] == 1) {
-        // fill(alive); // If alive
-        m.setDot(j, i, true);
+void initializeCells() {
+  for (int i = 0; i < WIDTH; i++) {
+    for (int j = 0; j < HEIGHT; j++) {
+      float state = random (100);
+      if (state > Probability) {
+        state = 0;
       }
       else {
-        // fill(dead); // If dead
-        m.setDot(j, i, false);
+        state = 1;
       }
+      array1[i][j] = int(state); // Save state of each cell
     }
   }
 }
-
-void iteration() {
-  for (int i = 0; i < cols; i++) {
-    for (int j = 0; j < rows; j++) {
+void GameofLife_ram() {
+  for (int i = 0; i < WIDTH; i++) {
+    for (int j = 0; j < HEIGHT; j++) {
       cellbuffer[i][j] = array1[i][j];
     }
   }
   // Visit each cell:
-  for (int i = 0; i < cols; i++) {
-    for (int j = 0; j < rows; j++) {
+  for (int i = 0; i < WIDTH; i++) {
+    for (int j = 0; j < HEIGHT; j++) {
       int neighbours = 0; //  count the neighbours
       for (int ii = i - 1; ii <= i + 1; ii++) {
         for (int jj = j - 1; jj <= j + 1; jj++) {
-          if (((ii >= 0) && (ii < cols)) && ((jj >= 0) && (jj < rows))) { //check if out of bounds
+          if (((ii >= 0) && (ii < WIDTH)) && ((jj >= 0) && (jj < HEIGHT))) { //check if out of bounds
             if (!((ii == i) && (jj == j))) { // Make sure to to check against self
               if (cellbuffer[ii][jj] == 1) {
                 neighbours ++; // Check alive neighbours and count them
@@ -163,13 +164,40 @@ void iteration() {
   } //End of i loop
 } //End of function
 
-void proxibrightness() {
+void statePlot() {
+  for (int i = 0; i < WIDTH; i++) {
+    for (int j = 0; j < HEIGHT; j++) {
+      if (array1[i][j] == 1) {
+        // fill(alive); // If alive
+        pixels.setPixelColor(i + (j * WIDTH) , pixels.Color(25, 25, 25));
+        //        Serial.print(array1[i][j]);
+        //        Serial.print("  ");
+      }
+      else {
+        // fill(dead); // If dead
+        pixels.setPixelColor(i + (j * WIDTH), pixels.Color(0, 0, 0));
+        //        Serial.print(array1[i][j]);
+        //        Serial.print("  ");
+      }
+    }
+  }
+  pixels.show();
+}
 
-  a = sr04.Distance();
+void proxibrightness() {
+  long duration, distance;
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = newPulseIn(echoPin, HIGH);
+  distance = (duration / 1) / 29.1;
+  duration = newPulseIn(echoPin, LOW);
+  delay(10);
+
   int average = 0;
 
   for (int i = 0; i < 20; i++) {
-    average = average + a;
+    average = average + distance;
   }
   average = average / 20;
   if (average < 0) {
@@ -182,38 +210,18 @@ void proxibrightness() {
   //bright = map(a,0,400,12 ,0);
 
   if (average < 100) {
-    bright = bright + 1;
-    if (bright > 12) {
-      bright = 12;
+    bright = bright + 2;
+    if (bright > 100) {
+      bright = 100;
     }
   }
   if (average > 100) {
-    bright = bright - 1;
+    bright = bright - 2;
     if (bright < 0) {
       bright = 0;
     }
   }
-  m.setIntensity(bright);
-}
-
-void portTest() {
-
-  pinMode(ledPin9, OUTPUT);
-
-  while (Serial.available()) { // If data is available to read,
-    serVal = Serial.read();
-  }
-  for (int i = 0; i < cols; i++) {
-    for (int j = 0; j < rows; j++) {
-      int state=0;
-      if (serVal == 1) {
-        state = 1;
-      } else if (serVal == 0) {
-        state = 0;
-      }
-      array1[i][j] = int(state);
-    }
-  }
+  // m.setIntensity(bright);
 }
 
 void pauseButton() {
@@ -266,7 +274,7 @@ void resetButton() {
 
       // only toggle Pause if the new button state is HIGH
       if (buttonState10 == HIGH) {
-        //initializeCells();
+        initializeCells();
         //Serial.print("Reset");
       }
     }
@@ -283,23 +291,23 @@ void offonPauseG() {
     digitalWrite(ledPin5, ledState5);
   }
 }
+void pauseGame() {
+  if (millis() - lastRecordedTime > interval) {
+    if (!pause) {
+      GameofLife_ram();
+      statePlot();
+      lastRecordedTime = millis();
+    }
+  }
+}
 
-
-//void initializeCells() {
-//
-//  for (int i = 0; i < cols; i++) {
-//    for (int j = 0; j < rows; j++) {
-//      float state = random (100);
-//      if (state > Probability) {
-//        state = 0;
-//      }
-//      else {
-//        state = 1;
-//      }
-//      array1[i][j] = int(state); // Save state of each cell
-//    }
+//void establishContact() {
+//  while (Serial.available() <= 0) {
+//    Serial.write('A');   // send a capital A
+//    delay(300);
 //  }
 //}
+
 
 //void portTest() {       test1
 //
@@ -328,5 +336,3 @@ void offonPauseG() {
 ////      digitalWrite(ledPin9, LOW);
 ////    }
 //}
-/* TEMP
-*/
