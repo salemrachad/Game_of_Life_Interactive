@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//115200 baud speed
 #include <Adafruit_NeoPixel.h>
 
 //DEFINE MATRIX 32x32
@@ -11,9 +11,9 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 //color of the dots ({red, green, blue} max value 255 each]
-int colorOfPattern[3] = {30, 0, 30};
+int colorOfPattern[3];
 //color of background
-int colorOfBackground[3] = {0, 0, 10};
+int colorOfBackground[3];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +39,6 @@ static unsigned int newPulseIn(const byte pin, const byte state, const unsigned 
   WAIT_FOR_PIN_STATE(!state);
   return micros() - timestamp;
 }
-long a;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +71,7 @@ int ledState5 = LOW;
 
 //brightness of the led
 
-int bright;
+float bright;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,8 +91,17 @@ float Probability = 45;
 // Variables for timer
 
 boolean pause = false;
-int interval = 165;
+int interval = 200;
 int lastRecordedTime = 0;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Variable for State
+//implementing 2 states
+//state 0 is waiting to receive from processing
+//state 1 is playing
+
+int state = 0;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -110,8 +118,9 @@ void loop() {
   resetButton();
   offonPauseG();
   pauseGame();
-   
+
 }
+
 
 void initializeCells() {
   for (int i = 0; i < WIDTH; i++) {
@@ -165,63 +174,35 @@ void GameofLife_ram() {
 } //End of function
 
 void statePlot() {
+  int alive;
+  //int bright1 = proxibrightness();
   for (int i = 0; i < WIDTH; i++) {
     for (int j = 0; j < HEIGHT; j++) {
-      if (array1[i][j] == 1) {
-        // fill(alive); // If alive
-        pixels.setPixelColor(i + (j * WIDTH) , pixels.Color(25, 25, 25));
-        //        Serial.print(array1[i][j]);
-        //        Serial.print("  ");
+
+      if (j & 0x1) { //is odd
+        if (array1[i][j] == 1) {
+          pixels.setPixelColor(((j * WIDTH) + (WIDTH - 1 - i)), pixels.Color(25, 0, 25));
+          alive++;
+        }
+        else {
+          pixels.setPixelColor(((j * WIDTH) + (WIDTH - 1 - i)), pixels.Color(0, 0, 0));
+        }
       }
       else {
-        // fill(dead); // If dead
-        pixels.setPixelColor(i + (j * WIDTH), pixels.Color(0, 0, 0));
-        //        Serial.print(array1[i][j]);
-        //        Serial.print("  ");
+        if (array1[i][j] == 1) {
+          pixels.setPixelColor(i + (j * WIDTH) , pixels.Color(25, 0, 25));
+          alive++;
+        }
+        else {
+          pixels.setPixelColor(i + (j * WIDTH), pixels.Color(0, 0, 0));
+        }
       }
     }
   }
   pixels.show();
-}
-
-void proxibrightness() {
-  long duration, distance;
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  duration = newPulseIn(echoPin, HIGH);
-  distance = (duration / 1) / 29.1;
-  duration = newPulseIn(echoPin, LOW);
-  delay(10);
-
-  int average = 0;
-
-  for (int i = 0; i < 20; i++) {
-    average = average + distance;
+  if (alive <= int(NUMPIXELS * 0.038)) {
+    initializeCells();
   }
-  average = average / 20;
-  if (average < 0) {
-    average = 0;
-  } else if (average > 400) {
-    average = 400;
-  }
-
-  //mapping reverse range for bright to be at max when close and minimum at far.
-  //bright = map(a,0,400,12 ,0);
-
-  if (average < 100) {
-    bright = bright + 2;
-    if (bright > 100) {
-      bright = 100;
-    }
-  }
-  if (average > 100) {
-    bright = bright - 2;
-    if (bright < 0) {
-      bright = 0;
-    }
-  }
-  // m.setIntensity(bright);
 }
 
 void pauseButton() {
@@ -301,12 +282,7 @@ void pauseGame() {
   }
 }
 
-//void establishContact() {
-//  while (Serial.available() <= 0) {
-//    Serial.write('A');   // send a capital A
-//    delay(300);
-//  }
-//}
+
 
 
 //void portTest() {       test1
@@ -335,4 +311,49 @@ void pauseGame() {
 ////    else {
 ////      digitalWrite(ledPin9, LOW);
 ////    }
+//}
+
+//void establishContact() {
+//  while (Serial.available() <= 0) {
+//    Serial.write('A');   // send a capital A
+//    delay(300);
+//  }
+//}
+
+//int proxibrightness() {
+//  long duration, distance;
+//  digitalWrite(trigPin, HIGH);
+//  delayMicroseconds(10);
+//  digitalWrite(trigPin, LOW);
+//  duration = newPulseIn(echoPin, HIGH);
+//  distance = (duration / 1) / 29.1;
+//  duration = newPulseIn(echoPin, LOW);
+//  delay(10);
+//
+////  int average=0;
+////  int bright;
+////  for (int i = 0; i < 20; i++) {
+////    average = average + distance;
+////  }
+////  average = average / 20;
+////  if (average < 0) {
+////    average = 0;
+////  } else if (average > 400) {
+////    average = 400;
+////  }
+////  if (average < 100) {
+////    bright = bright + 2;
+////    if (bright > 100) {
+////      bright = 100;
+////    }
+////  }
+////  if (average > 100) {
+////    bright = bright - 2;
+////    if (bright < 0) {
+////      bright = 0;
+////    }
+////  }
+//  //mapping reverse range for bright to be at max when close and minimum at far.
+//  bright = map(distance,0,400,40,0);
+//  return bright;
 //}
