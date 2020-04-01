@@ -60,6 +60,7 @@ unsigned long debounceDelay = 50;    // the debounce time; increase if the outpu
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //LED Setup
+// TODO: Rename Variable
 
 const int ledPin9 = 9;
 const int ledPin3 = 3;
