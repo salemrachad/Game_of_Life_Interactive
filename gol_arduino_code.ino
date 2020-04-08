@@ -83,7 +83,7 @@ int Blue_PIN = 16;
 
 //brightness of the led
 
-float bright;
+// float bright;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -109,9 +109,10 @@ int lastRecordedTime = 0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Variable for State
-//implementing 2 states
-//state 0 is waiting to receive from processing
-//state 1 is playing
+//implementing 3 states
+//state 0 will Play game of life
+//state 1 will display weather information on Led from OpenWeatherMap via Wifi
+//state 2 will be an interactive LED - using processing and a webcam -
 
 int gstate = 0;
 
