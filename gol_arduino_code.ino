@@ -1,5 +1,4 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-//115200 baud speed
 #include <Adafruit_NeoPixel.h>
 
 //DEFINE MATRIX 32x32
@@ -11,46 +10,53 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 //color of the dots ({red, green, blue} max value 255 each]
-int colorOfPattern[3];
+int colorOfPattern[3]={25,0,25};
 //color of background
-int colorOfBackground[3];
+int colorOfBackground[3]={0,0,0};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#include <SPI.h>
-
-int trigPin = 12;
-int echoPin = 13;
-
-// function prototype to define default timeout value
-static unsigned int newPulseIn(const byte pin, const byte state, const unsigned long timeout = 1000000L);
-// using a macro to avoid function call overhead
-#define WAIT_FOR_PIN_STATE(state) \
-  while (digitalRead(pin) != (state)) { \
-    if (micros() - timestamp > timeout) { \
-      return 0; \
-    } \
-  }
-static unsigned int newPulseIn(const byte pin, const byte state, const unsigned long timeout) {
-  unsigned long timestamp = micros();
-  WAIT_FOR_PIN_STATE(!state);
-  WAIT_FOR_PIN_STATE(state);
-  timestamp = micros();
-  WAIT_FOR_PIN_STATE(!state);
-  return micros() - timestamp;
-}
-
+// Setup for proximity sensor
+// #include <SPI.h>
+//
+// int trigPin = 12;
+// int echoPin = 13;
+//
+// // function prototype to define default timeout value
+// static unsigned int newPulseIn(const byte pin, const byte state, const unsigned long timeout = 1000000L);
+// // using a macro to avoid function call overhead
+// #define WAIT_FOR_PIN_STATE(state) \
+// while (digitalRead(pin) != (state)) { \
+//   if (micros() - timestamp > timeout) { \
+//     return 0; \
+//   } \
+// }
+// static unsigned int newPulseIn(const byte pin, const byte state, const unsigned long timeout) {
+//   unsigned long timestamp = micros();
+//   WAIT_FOR_PIN_STATE(!state);
+//   WAIT_FOR_PIN_STATE(state);
+//   timestamp = micros();
+//   WAIT_FOR_PIN_STATE(!state);
+//   return micros() - timestamp;
+// }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//Pause Button Setup
+// Button Setup
 
-const int buttonPin = 2;
-const int buttonPin10 = 10;
-
+const int buttonPin = 2; //Pause Button
 int buttonState;
-int lastButtonState = LOW;   // the previous reading from the input pin
+int lastButtonState = LOW;
+
+const int buttonPin10 = 10; //Reset array Button
 int buttonState10;
 int lastButtonState10 = LOW;
+
+const int buttonPin11 = 11; // Request Array from Processing Button
+int buttonState11;
+int lastButtonState11 = LOW;
+
+const int buttonPin12 = 12; //State Changer Button
+int buttonState12;
+int lastButtonState12 = LOW;
 
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.
@@ -60,15 +66,20 @@ unsigned long debounceDelay = 50;    // the debounce time; increase if the outpu
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //LED Setup
-// TODO: Rename Variable
 
-const int ledPin9 = 9;
-const int ledPin3 = 3;
-const int ledPin5 = 5;
-
-int ledState9 = LOW;
+const int ledPin3 = 3; // RED Led Pin
 int ledState3 = LOW;
+const int ledPin5 = 5; // Green Led Pin
 int ledState5 = LOW;
+const int ledPin9 = 9; // Yellow Led Pin
+int ledState9 = LOW;
+
+
+//LED RGB setup
+
+int Red_PIN = 14;
+int Green_PIN = 15;
+int Blue_PIN = 16;
 
 //brightness of the led
 
@@ -102,11 +113,13 @@ int lastRecordedTime = 0;
 //state 0 is waiting to receive from processing
 //state 1 is playing
 
-int state = 0;
+int gstate = 0;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
+  //Start Serial
+  Serial.begin(115200);
   //Starting Dot Matrix
   pixels.begin();
   pixels.show();
@@ -115,13 +128,28 @@ void setup() {
 
 void loop() {
 
-  pauseButton();
-  resetButton();
-  offonPauseG();
-  pauseGame();
+  button_changeState();
+  stateLedColor();
 
+  switch (gstate) {
+    case 0:
+    pauseGame();
+    pauseButton();
+    resetButton();
+    break;
+    case 1:
+    pixels.clear();
+    for (int i = 0; i < WIDTH * HEIGHT; i++) {
+      pixels.setPixelColor(i, pixels.Color(5, 0, 5));
+    }
+    pixels.show();
+    break;
+    case 2:
+    //statement
+    pixels.clear();
+    break;
+  }
 }
-
 
 void initializeCells() {
   for (int i = 0; i < WIDTH; i++) {
@@ -137,6 +165,7 @@ void initializeCells() {
     }
   }
 }
+
 void GameofLife_ram() {
   for (int i = 0; i < WIDTH; i++) {
     for (int j = 0; j < HEIGHT; j++) {
@@ -182,20 +211,20 @@ void statePlot() {
 
       if (j & 0x1) { //is odd
         if (array1[i][j] == 1) {
-          pixels.setPixelColor(((j * WIDTH) + (WIDTH - 1 - i)), pixels.Color(25, 0, 25));
+          pixels.setPixelColor(((j * WIDTH) + (WIDTH - 1 - i)), pixels.Color(colorOfPattern[0], colorOfPattern[1], colorOfPattern[2]));
           alive++;
         }
         else {
-          pixels.setPixelColor(((j * WIDTH) + (WIDTH - 1 - i)), pixels.Color(0, 0, 0));
+          pixels.setPixelColor(((j * WIDTH) + (WIDTH - 1 - i)), pixels.Color(colorOfBackground[0], colorOfBackground[0], colorOfBackground[0]));
         }
       }
       else {
         if (array1[i][j] == 1) {
-          pixels.setPixelColor(i + (j * WIDTH) , pixels.Color(25, 0, 25));
+          pixels.setPixelColor(i + (j * WIDTH) , pixels.Color(colorOfPattern[0], colorOfPattern[1], colorOfPattern[2]));
           alive++;
         }
         else {
-          pixels.setPixelColor(i + (j * WIDTH), pixels.Color(0, 0, 0));
+          pixels.setPixelColor(i + (j * WIDTH), pixels.Color(colorOfBackground[0], colorOfBackground[0], colorOfBackground[0]));
         }
       }
     }
@@ -208,7 +237,6 @@ void statePlot() {
 
 void pauseButton() {
   pinMode(ledPin5, OUTPUT);
-  pinMode(ledPin3, OUTPUT);
 
   int reading = digitalRead(buttonPin);
   // If the switch changed, due to noise or pressing:
@@ -226,45 +254,12 @@ void pauseButton() {
 
       // only toggle Pause if the new button state is HIGH
       if (buttonState == HIGH) {
-        ledState3 = !ledState3;
         pause = !pause;
-        ledState5 = LOW;
-        digitalWrite(ledPin5, ledState5);
-        //Serial.print("pushed");
       }
     }
   }
   lastButtonState = reading;
-  digitalWrite(ledPin3, ledState3);
-}
 
-void resetButton() {
-
-  int reading1 = digitalRead(buttonPin10);
-  // If the switch changed, due to noise or pressing:
-  if (reading1 != lastButtonState10) {
-    // reset the debouncing timer
-    lastDebounceTime = millis();
-  }
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer than the debounce
-    // delay, so take it as the actual current state:
-
-    // if the button state has changed:
-    if (reading1 != buttonState10) {
-      buttonState10 = reading1;
-
-      // only toggle Pause if the new button state is HIGH
-      if (buttonState10 == HIGH) {
-        initializeCells();
-        //Serial.print("Reset");
-      }
-    }
-  }
-  lastButtonState10 = reading1;
-}
-
-void offonPauseG() {
   if (pause == false) {
     ledState5 = HIGH;
     digitalWrite(ledPin5, ledState5);
@@ -273,6 +268,105 @@ void offonPauseG() {
     digitalWrite(ledPin5, ledState5);
   }
 }
+
+void resetButton() {
+
+  int reading = digitalRead(buttonPin10);
+  // If the switch changed, due to noise or pressing:
+  if (reading != lastButtonState10) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState10) {
+      buttonState10 = reading;
+      // only toggle Reset if the new button state is HIGH
+      if (buttonState10 == HIGH) {
+        initializeCells();
+      }
+    }
+  }
+  lastButtonState10 = reading;
+}
+
+void button_requestArrayFromSerial() {
+
+  int reading = digitalRead(buttonPin11);
+  // If the switch changed, due to noise or pressing:
+  if (reading != lastButtonState11) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState11) {
+      buttonState11 = reading;
+      // Send request to Processing if the new button state is HIGH
+      if (buttonState11 == HIGH) {
+        //start request
+      }
+    }
+  }
+  lastButtonState11 = reading;
+}
+
+void button_changeState() {
+
+  int reading = digitalRead(buttonPin12);
+
+  // If the switch changed, due to noise or pressing:
+  if (reading != lastButtonState12) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState12) {
+      buttonState12 = reading;
+
+      // only toggle if the new button state is HIGH
+      if (buttonState12 == HIGH) {
+        gstate = gstate + 1;
+        //Serial.print(gstate);
+      }
+    }
+  }
+  lastButtonState12 = reading;
+}
+
+void stateLedColor(){   //RGB LED color depending on gstate.
+  pinMode(Red_PIN, OUTPUT);
+  pinMode(Green_PIN, OUTPUT);
+  pinMode(Blue_PIN, OUTPUT);
+
+  if (gstate == 0){         //Color Red if gstate=0
+    analogWrite(Red_PIN, 255);
+    analogWrite(Green_PIN, 0);
+    analogWrite(Blue_PIN, 0);
+  } else if (gstate == 1){  //Color Green if gstate=1
+    analogWrite(Red_PIN, 0);
+    analogWrite(Green_PIN, 255);
+    analogWrite(Blue_PIN, 0);
+  } else if(gstate == 2){   //Color Blue if gstate=2
+    analogWrite(Red_PIN, 0);
+    analogWrite(Green_PIN, 0);
+    analogWrite(Blue_PIN, 255);
+  }else if(gstate >= 3){    //Reset if gstate=0 to maintain only 3 switch cases
+    gstate = 0;
+  }
+}
+
+
 void pauseGame() {
   if (millis() - lastRecordedTime > interval) {
     if (!pause) {
@@ -282,9 +376,6 @@ void pauseGame() {
     }
   }
 }
-
-
-
 
 //void portTest() {       test1
 //
