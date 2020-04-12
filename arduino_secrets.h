@@ -1,0 +1,2 @@
+#define SECRET_SSID "Pixel_2771"
+#define SECRET_PASS "1234567890"

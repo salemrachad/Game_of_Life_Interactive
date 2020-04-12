@@ -1,4 +1,25 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Wifi Setup
+
+#include <WiFiNINA.h>
+#include <ArduinoJson.h>
+#include "arduino_secrets.h"
+#include <stdio.h>
+#include <SPI.h>
+
+char ssid[] = SECRET_SSID;        // your network SSID (name)
+char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
+
+int status = WL_IDLE_STATUS;
+
+// Initialize the Wifi client library
+WiFiSSLClient client;
+
+unsigned long lastConnectionTime = 0;            // last time you connected to the server, in milliseconds
+const unsigned long postingInterval = 30L * 1000L; // delay between updates, in milliseconds
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <Adafruit_NeoPixel.h>
 
 //DEFINE MATRIX 32x32
@@ -10,9 +31,9 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 //color of the dots ({red, green, blue} max value 255 each]
-int colorOfPattern[3]={25,0,25};
+int colorOfPattern[3] = {25, 0, 25};
 //color of background
-int colorOfBackground[3]={0,0,0};
+int colorOfBackground[3] = {0, 0, 0};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Setup for proximity sensor
@@ -121,8 +142,13 @@ int gstate = 0;
 void setup() {
   //Start Serial
   Serial.begin(115200);
+
+  //Attempt to Connect to wifi
+  connect2Wifi();
+
   //Starting Dot Matrix
   pixels.begin();
+  pixels.clear();
   pixels.show();
   initializeCells();
 }
@@ -133,22 +159,29 @@ void loop() {
   stateLedColor();
 
   switch (gstate) {
+
     case 0:
-    pauseGame();
-    pauseButton();
-    resetButton();
-    break;
+      if (millis() - lastConnectionTime > postingInterval)
+      {
+        httpRequest();
+      }
+      break;
+
     case 1:
-    pixels.clear();
-    for (int i = 0; i < WIDTH * HEIGHT; i++) {
-      pixels.setPixelColor(i, pixels.Color(5, 0, 5));
-    }
-    pixels.show();
-    break;
+      pauseGame();
+      pauseButton();
+      resetButton();
+      break;
+
     case 2:
-    //statement
-    pixels.clear();
-    break;
+      pixels.clear();
+      for (int i = 0; i < WIDTH * HEIGHT; i++) {
+        pixels.setPixelColor(i, pixels.Color(5, 0, 5));
+      }
+      pixels.show();
+      break;
+
+
   }
 }
 
@@ -337,36 +370,35 @@ void button_changeState() {
 
       // only toggle if the new button state is HIGH
       if (buttonState12 == HIGH) {
+        pixels.clear();
         gstate = gstate + 1;
-        //Serial.print(gstate);
       }
     }
   }
   lastButtonState12 = reading;
 }
 
-void stateLedColor(){   //RGB LED color depending on gstate.
+void stateLedColor() {  //RGB LED color depending on gstate.
   pinMode(Red_PIN, OUTPUT);
   pinMode(Green_PIN, OUTPUT);
   pinMode(Blue_PIN, OUTPUT);
 
-  if (gstate == 0){         //Color Red if gstate=0
+  if (gstate == 0) {        //Color Red if gstate=0
     analogWrite(Red_PIN, 255);
     analogWrite(Green_PIN, 0);
     analogWrite(Blue_PIN, 0);
-  } else if (gstate == 1){  //Color Green if gstate=1
+  } else if (gstate == 1) { //Color Green if gstate=1
     analogWrite(Red_PIN, 0);
     analogWrite(Green_PIN, 255);
     analogWrite(Blue_PIN, 0);
-  } else if(gstate == 2){   //Color Blue if gstate=2
+  } else if (gstate == 2) { //Color Blue if gstate=2
     analogWrite(Red_PIN, 0);
     analogWrite(Green_PIN, 0);
     analogWrite(Blue_PIN, 255);
-  }else if(gstate >= 3){    //Reset if gstate=0 to maintain only 3 switch cases
+  } else if (gstate >= 3) {  //Reset if gstate=0 to maintain only 3 switch cases
     gstate = 0;
   }
 }
-
 
 void pauseGame() {
   if (millis() - lastRecordedTime > interval) {
@@ -375,6 +407,179 @@ void pauseGame() {
       statePlot();
       lastRecordedTime = millis();
     }
+  }
+}
+
+void connect2Wifi() {
+  pinMode(ledPin3, OUTPUT);
+  pinMode(ledPin9, OUTPUT);
+  // check for the WiFi module:
+  if (WiFi.status() == WL_NO_MODULE)
+  {
+    Serial.println("Communication with WiFi module failed!");
+    // don't continue
+    while (true);
+  }
+
+  String fv = WiFi.firmwareVersion();
+  if (fv < "1.0.0")
+  {
+    Serial.println("Please upgrade the firmware");
+  }
+
+  // attempt to connect to Wifi network:
+  while (status != WL_CONNECTED)
+  {
+    digitalWrite(ledPin3,HIGH);
+    digitalWrite(ledPin9, LOW);
+    Serial.print("Attempting to connect to SSID: ");
+    Serial.println(ssid);
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    status = WiFi.begin(ssid, pass);
+    // wait 10 seconds for connection:
+    delay(10000);
+  }
+  // you're connected now, so print out the status:
+  digitalWrite(ledPin3,LOW);
+  digitalWrite(ledPin9,HIGH);
+  printWifiStatus();
+
+}
+
+void printWifiStatus() {
+  // print the SSID of the network you're attached to:
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+
+  // print your board's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+
+  // print the received signal strength:
+  long rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI):");
+  Serial.print(rssi);
+  Serial.println(" dBm");
+}
+
+void httpRequest() {
+  // if there's a successful connection:
+  if (client.connect("api.openweathermap.org", 443))
+  {
+    Serial.println("connecting...");
+    // send the HTTP PUT request:
+    client.println("GET /data/2.5/weather?q=spain,madrid&appid=4483727fd8bd14c96f505ab796963203 HTTP/1.1");
+    client.println("Host: api.openweathermap.org");
+    client.println("Connection: close");
+    client.println();
+
+    // Check HTTP status
+    char status[32] = {0};
+    client.readBytesUntil('\r', status, sizeof(status));
+    // It should be "HTTP/1.0 200 OK" or "HTTP/1.1 200 OK"
+    if (strcmp(status + 9, "200 OK") != 0)
+    {
+      Serial.print(F("Unexpected response: "));
+      Serial.println(status);
+      return;
+    }
+
+    // Skip HTTP headers
+    char endOfHeaders[] = "\r\n\r\n";
+    if (!client.find(endOfHeaders))
+    {
+      Serial.println(F("Invalid response"));
+      return;
+    }
+    // Allocate the JSON document
+    // Use arduinojson.org/v6/assistant to compute the capacity.
+    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(0) + 2 * JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(14) + 280;
+    DynamicJsonDocument doc(capacity);
+
+    // Parse JSON object
+    DeserializationError error = deserializeJson(doc, client);
+    if (error) {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.c_str());
+      return;
+    }
+
+    int weatherId = doc["weather"][0]["id"].as<int>();
+    float weatherTemperature = doc["main"]["temp"].as<float>();
+    int weatherHumidity = doc["main"]["humidity"].as<int>();
+
+    //Disconnect
+    client.stop();
+
+    Serial.println(F("Response:"));
+    Serial.print("Weather: ");
+    Serial.println(weatherId);
+    Serial.print("Temperature: ");
+    Serial.println(weatherTemperature);
+    Serial.print("Humidity: ");
+    Serial.println(weatherHumidity);
+    Serial.println();
+
+    if (weatherId == 800)   //clear
+    {
+      for (int i = 0; i < WIDTH * HEIGHT; i++) {
+        pixels.setPixelColor(i, pixels.Color(0, 10, 10));
+      }
+      pixels.show();
+    }
+    else
+    {
+      switch (weatherId / 100)
+      {
+        case 2:     //Thunderstorm
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            pixels.setPixelColor(i, pixels.Color(25, 0, 25));
+          }
+          pixels.show();
+          break;
+
+        case 3:     //Drizzle
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            pixels.setPixelColor(i, pixels.Color(0, 0, 10));
+          }
+          pixels.show();
+          break;
+        case 5:     //Rain
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            pixels.setPixelColor(i, pixels.Color(0, 0, 25));
+          }
+          pixels.show();
+          break;
+
+        case 7:     //Sun with clouds
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            pixels.setPixelColor(i, pixels.Color(20, 20, 0));
+          }
+          pixels.show();
+          break;
+        case 8:     //clouds
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            pixels.setPixelColor(i, pixels.Color(20, 12, 16));
+          }
+          pixels.show();
+          break;
+
+        default:    //Sun with clouds
+          for (int i = 0; i < WIDTH * HEIGHT; i++) {
+            pixels.setPixelColor(i, pixels.Color(20, 20, 0));
+          }
+          pixels.show();
+          break;
+      }
+    }
+    // note the time that the connection was made:
+    lastConnectionTime = millis();
+  }
+  else
+  {
+    // if you couldn't make a connection:
+    Serial.println("connection failed");
   }
 }
 
