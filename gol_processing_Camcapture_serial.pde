@@ -10,16 +10,16 @@ Capture cam;
 int[][] ProcessingledMatrix;
 int BWrez =250;
 int ledxnumber=32;
-int ledynumber=8;
+int ledynumber=32;
 String str;
+boolean firstContact = false;
 
-void setup() {  
+void setup() {
   size(640, 360);
 
   String portName = Serial.list()[0];
   print(portName);
-  myPort = new Serial(this, portName, 9600);
-
+  myPort = new Serial(this, portName, 115200);
   initializeCam();
 }
 
@@ -38,7 +38,7 @@ void initializeCam() {
     for (int i = 0; i < cameras.length; i++) {
       println(cameras[i]);
     }
-    // The camera can be initialized directly using an 
+    // The camera can be initialized directly using an
     // element from the array returned by list():
     cam = new Capture(this, cameras[11]);
     cam.start();
@@ -67,21 +67,19 @@ color extractColorFromImage(PImage img) {
 
   int sum = r +g + b;
   for (int i=0; i<ledxnumber; i++) {
-    for (int j=0; j<ledynumber; j++) {    
+    for (int j=0; j<ledynumber; j++) {
       if (sum <BWrez) {
         r=0;
         g=0;
         b=0;
         ProcessingledMatrix[i][j] = 1;
-        myPort.write('1');
-        
       } else if (sum>BWrez) {
         r=255;
         g=255;
         b=255;
         ProcessingledMatrix[i][j] = 0;
-        myPort.write('0');
       }
+      return ProcessingledMatrix[i][j];
     }
   }
   return color(r, g, b);
@@ -91,6 +89,7 @@ color extractColorFromImage(PImage img) {
 
 void processImage() {
   PImage img = loadImage("C:/Users/racha/desktop/image/silh_1.jpg");
+
 
   int xled = width/ledxnumber;
   int yled = height/ledynumber;
@@ -108,38 +107,47 @@ void processImage() {
   }
   save("C:/Users/racha/desktop/image/silh_1_frag.jpg");
 }
-void keyPressed() {
 
-  if (key == 'r') {
+
+void serialEvent(Serial myPort) {
+  // read a byte from the serial port:
+  int inByte = myPort.read();
+
+  if (inByte == 'A') {
+    myPort.clear();
     if (cam.available() == true) {
       cam.read();
       cam.filter(GRAY);
       image (cam, 0, 0);
       saveFrame("C:/Users/racha/desktop/image/silh_1.jpg");
       processImage();
-      //myPort.write('r');
-      //sendtoArduino();
     }
+    sendtoArduino(ProcessingledMatrix);
   }
 }
 
-//  }
-//}
+void sendtoArduino(int[][] _ProcessingledMatrix) {
+  byte out[] = new byte[ledxnumber*ledynumber];
+  for (int i=0; i<ledxnumber; i++) {
+    for (int j=0; j<ledynumber; j++) {
+      out[i+j] = (byte)_ProcessingledMatrix[i][j];
+    }
+  }
+  myPort.write(out);
+}
 
-//void sendtoArduino(int[][] _ProcessingledMatrix) {
-//  byte out[] = new byte[ledxnumber*ledynumber];
-//////void sendtoArduino() {
-//  for (int i=0; i<ledxnumber; i++) {
-//    for (int j=0; j<ledynumber; j++) {
-//      out[i+j] = (byte)_ProcessingledMatrix[i][j];
-//      //print(ProcessingledMatrix[i][j]);
-//      //myPort.write(ProcessingledMatrix[i][j]);
-//      //parse data from int to byte 
+//void keyPressed() {
+
+//  if (key == 'r') {
+//    if (cam.available() == true) {
+//      cam.read();
+//      cam.filter(GRAY);
+//      image (cam, 0, 0);
+//      saveFrame("C:/Users/racha/desktop/image/silh_1.jpg");
+//      processImage();
 //    }
 //  }
-// //print(out);
-//myPort.write(out);
-//}  
+//}
 
 //void sendtoArduino() {
 //  for (int i=0; i<ledxnumber; i++) {
