@@ -1,3 +1,13 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// * Interactive Painting with 3 States
+// *
+// * State 0 gets weather information from OpenWeatherMap API and display
+// * State 1 plays the game of GameofLife
+// * State 2 is an interactive state using processing and webcam
+// *
+// * Written for the Arduino Nano 33 IoT Board and 4 x Longrunner WS2812B
+// *
+// * By Rachad Salem
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Wifi Setup
