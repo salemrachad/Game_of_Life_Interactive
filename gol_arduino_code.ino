@@ -957,7 +957,7 @@ void httpRequest() {
 
     if (weatherId == 800)   //clear
     {
-      for (int passtime = 0; passtime < 8; passtime++) {
+      for (int passtime = 0; passtime < 30; passtime++) {
         FastLED.clear();
         for (int i = 0; i < NUMPIXELS; i++) {
           leds[i] = pgm_read_dword(&(Clear1[i]));  // Read array from Flash
@@ -980,7 +980,7 @@ void httpRequest() {
         case 2:     //Thunderstorm
 
           // Put Thunderstorm first frame
-          for (int passtime = 0; passtime < 8; passtime++) {
+          for (int passtime = 0; passtime < 30; passtime++) {
             FastLED.clear();
             for (int i = 0; i < NUMPIXELS; i++) {
               leds[i] = pgm_read_dword(&(Thunderstorm1[i]));  // Read array from Flash
@@ -1000,7 +1000,7 @@ void httpRequest() {
         case 3:     //Drizzle
 
           // Put Drizzle first frame
-          for (int passtime = 0; passtime < 8; passtime++) {
+          for (int passtime = 0; passtime < 30; passtime++) {
             FastLED.clear();
             for (int i = 0; i < NUMPIXELS; i++) {
               leds[i] = pgm_read_dword(&(Drizzle1[i]));  // Read array from Flash
@@ -1020,7 +1020,7 @@ void httpRequest() {
         case 5:     //Rain
 
           // Put Rain first frame
-          for (int passtime = 0; passtime < 8; passtime++) {
+          for (int passtime = 0; passtime < 30; passtime++) {
             FastLED.clear();
             for (int i = 0; i < NUMPIXELS; i++) {
               leds[i] = pgm_read_dword(&(Rain1[i]));  // Read array from Flash
@@ -1040,7 +1040,7 @@ void httpRequest() {
         case 7:     //Sun with clouds
 
           // Put Sun with clouds first frame
-          for (int passtime = 0; passtime < 8; passtime++) {
+          for (int passtime = 0; passtime < 30; passtime++) {
             FastLED.clear();
             for (int i = 0; i < NUMPIXELS; i++) {
               leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
@@ -1058,7 +1058,7 @@ void httpRequest() {
           break;
         case 8:     //clouds
           // Put Clouds first frame
-          for (int passtime = 0; passtime < 8; passtime++) {
+          for (int passtime = 0; passtime < 30; passtime++) {
             FastLED.clear();
             for (int i = 0; i < NUMPIXELS; i++) {
               leds[i] = pgm_read_dword(&(Clouds1[i]));  // Read array from Flash
@@ -1078,7 +1078,7 @@ void httpRequest() {
         default:    //Sun with clouds
 
           // Put Sun with clouds first frame
-          for (int passtime = 0; passtime < 8; passtime++) {
+          for (int passtime = 0; passtime < 30; passtime++) {
             FastLED.clear();
             for (int i = 0; i < NUMPIXELS; i++) {
               leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
