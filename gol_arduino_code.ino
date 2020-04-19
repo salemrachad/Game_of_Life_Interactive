@@ -1105,38 +1105,3 @@ void httpRequest() {
     Serial.println("connection failed");
   }
 }
-
-//void portTest() {       test1
-//
-//  pinMode(ledPin9, OUTPUT);
-//
-//  //  RECEIVE DATA FROM PROCESSING CODE TO USE
-//  // Wiring/Arduino code:
-//
-//  while (Serial.available()) { // If data is available to read,
-//    serVal += Serial.read();
-//  }
-//  for (int i = 0; i < cols; i++) {
-//    for (int j = 0; j < rows; j++) {
-//      int index = serVal.indexOf(","); //We find the next comma
-//      array1[i][j] = atol(serVal.substring(0, index).c_str());
-//      serVal = serVal.substring(index + 1); //Remove the number from the string
-//    }
-//  }
-////    if (serVal == 'r') {
-////      digitalWrite(ledPin9, HIGH);
-////      delay(150);
-////      digitalWrite(ledPin9, LOW);
-////      serVal = "";
-////    }
-////    else {
-////      digitalWrite(ledPin9, LOW);
-////    }
-//}
-
-//void establishContact() {
-//  while (Serial.available() <= 0) {
-//    Serial.write('A');   // send a capital A
-//    delay(300);
-//  }
-//}
