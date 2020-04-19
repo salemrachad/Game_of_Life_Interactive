@@ -26,7 +26,6 @@ void setup() {
 void draw() {
 }
 
-
 void initializeCam() {
   String[] cameras = Capture.list();
 
@@ -45,6 +44,27 @@ void initializeCam() {
   }
 }
 
+void processImage() {
+  PImage img = loadImage("C:/Users/racha/desktop/image/silh_1.jpg");
+
+
+  int xled = width/ledxnumber;
+  int yled = height/ledynumber;
+
+  ProcessingledMatrix = new int[ledxnumber][ledynumber];
+
+  //Draw LED MATRIX GRID
+
+  for (int i=0; i<width; i+=xled) {
+    for (int j=0; j<height; j+=yled) {
+      PImage newImg = img.get(i, j, xled, yled);
+      fill(extractColorFromImage(newImg));
+      rect(i, j, xled, yled);
+    }
+  }
+  save("C:/Users/racha/desktop/image/silh_1_frag.jpg");
+  //sendtoArduino(ProcessingledMatrix);
+}
 //Get the average RGB from pixels
 
 color extractColorFromImage(PImage img) {
@@ -66,62 +86,56 @@ color extractColorFromImage(PImage img) {
   //implement if loop to make colors binary- Calibrate
 
   int sum = r +g + b;
+
   for (int i=0; i<ledxnumber; i++) {
     for (int j=0; j<ledynumber; j++) {
+      int state=0;
       if (sum <BWrez) {
         r=0;
         g=0;
         b=0;
-        ProcessingledMatrix[i][j] = 1;
+        state=1;
       } else if (sum>BWrez) {
         r=255;
         g=255;
         b=255;
-        ProcessingledMatrix[i][j] = 0;
+        state=0;
       }
-      return ProcessingledMatrix[i][j];
+      ProcessingledMatrix[i][j]=state;
+      print(ProcessingledMatrix[i][j]);
     }
   }
   return color(r, g, b);
 }
 
-
-
-void processImage() {
-  PImage img = loadImage("C:/Users/racha/desktop/image/silh_1.jpg");
-
-
-  int xled = width/ledxnumber;
-  int yled = height/ledynumber;
-
-  ProcessingledMatrix = new int[ledxnumber][ledynumber];
-
-  //Draw LED MATRIX GRID
-
-  for (int i=0; i<width; i+=xled) {
-    for (int j=0; j<height; j+=yled) {
-      PImage newImg = img.get(i, j, xled, yled);
-      fill(extractColorFromImage(newImg));
-      rect(i, j, xled, yled);
-    }
-  }
-  save("C:/Users/racha/desktop/image/silh_1_frag.jpg");
-}
-
-
 void serialEvent(Serial myPort) {
+
   // read a byte from the serial port:
   int inByte = myPort.read();
 
   if (inByte == 'A') {
+    println("Arduino is requesting Array");
+    key = 'r';
+    key= ' ';
     myPort.clear();
-    if (cam.available() == true) {
-      cam.read();
-      cam.filter(GRAY);
-      image (cam, 0, 0);
-      saveFrame("C:/Users/racha/desktop/image/silh_1.jpg");
-      processImage();
-    }
+  }
+}
+
+void SnapShot() {
+  if (cam.available() == true) {
+    cam.read();
+    cam.filter(GRAY);
+    image (cam, 0, 0);
+    saveFrame("C:/Users/racha/desktop/image/silh_1.jpg");
+  }
+}
+
+void keyPressed() {
+  if (key == 'r') {
+    SnapShot();
+    delay(300);
+    processImage();
+    delay(300);
     sendtoArduino(ProcessingledMatrix);
   }
 }
@@ -135,38 +149,3 @@ void sendtoArduino(int[][] _ProcessingledMatrix) {
   }
   myPort.write(out);
 }
-
-//void keyPressed() {
-
-//  if (key == 'r') {
-//    if (cam.available() == true) {
-//      cam.read();
-//      cam.filter(GRAY);
-//      image (cam, 0, 0);
-//      saveFrame("C:/Users/racha/desktop/image/silh_1.jpg");
-//      processImage();
-//    }
-//  }
-//}
-
-//void sendtoArduino() {
-//  for (int i=0; i<ledxnumber; i++) {
-//    for (int j=0; j<ledynumber; j++) {
-//      if (i > 0) {
-//        str += ",";//We add a comma before each value, except the first value
-//      }
-//      str += ProcessingledMatrix[i][j];//We concatenate each number in the string.
-//    }
-//    myPort.write(str);
-//  }
-//}
-
-/*
-for(int i = 0; i < 16; i++){
- if(i > 0){
- str += ",";//We add a comma before each value, except the first value
- }
- str += frame[i];//We concatenate each number in the string.
- }
- serial.write(str);
- }*/
