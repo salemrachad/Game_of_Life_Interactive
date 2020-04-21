@@ -94,10 +94,6 @@ int Red_PIN = 14;    // gstatus 0
 int Green_PIN = 15; // gstatus 1
 int Blue_PIN = 16;//gstatus 2
 
-//brightness of the led
-
-// float bright;
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //2d array
@@ -813,23 +809,28 @@ void button_changeState() {
 }
 
 void stateLedColor() {  //RGB LED color depending on gstate.
+
   pinMode(Red_PIN, OUTPUT);
   pinMode(Green_PIN, OUTPUT);
   pinMode(Blue_PIN, OUTPUT);
+  pinMode(ledPin5, OUTPUT);
 
   if (gstate == 0) {        //Color Red if gstate=0
     analogWrite(Red_PIN, 255);
     analogWrite(Green_PIN, 0);
     analogWrite(Blue_PIN, 0);
-  } else if (gstate == 1) { //Color Green if gstate=1
+  }
+   else if (gstate == 1) { //Color Green if gstate=1
     analogWrite(Red_PIN, 0);
     analogWrite(Green_PIN, 255);
     analogWrite(Blue_PIN, 0);
-  } else if (gstate == 2) { //Color Blue if gstate=2
+  }
+  else if (gstate == 2) { //Color Blue if gstate=2
     analogWrite(Red_PIN, 0);
     analogWrite(Green_PIN, 0);
     analogWrite(Blue_PIN, 255);
-  } else if (gstate >= 3) {  //Reset if gstate=0 to maintain only 3 switch cases
+  }
+   else if (gstate >= 3) {  //Reset if gstate=0 to maintain only 3 switch cases
     gstate = 0;
   }
 }
@@ -903,7 +904,7 @@ void httpRequest() {
   {
     Serial.println("connecting...");
     // send the HTTP PUT request:
-    client.println("GET /data/2.5/weather?q=spain,madrid&appid=4483727fd8bd14c96f505ab796963203 HTTP/1.1");
+    client.println("GET /data/2.5/weather?q=spain&appid=4483727fd8bd14c96f505ab796963203 HTTP/1.1");
     client.println("Host: api.openweathermap.org");
     client.println("Connection: close");
     client.println();
@@ -926,9 +927,8 @@ void httpRequest() {
       Serial.println(F("Invalid response"));
       return;
     }
-    // Allocate the JSON document
-    // Use arduinojson.org/v6/assistant to compute the capacity.
-    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(0) + 2 * JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(14) + 280;
+    // Allocate the JSON document -- Used arduinojson.org/v6/assistant to compute the capacity.
+    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(0) + 2 * JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(13) + 270;
     DynamicJsonDocument doc(capacity);
 
     // Parse JSON object
@@ -957,7 +957,6 @@ void httpRequest() {
 
     if (weatherId == 800)   //clear
     {
-      button_changeState();
       for (int passtime = 0; passtime <20; passtime++) {
         FastLED.clear();
         for (int i = 0; i < NUMPIXELS; i++) {
@@ -979,7 +978,6 @@ void httpRequest() {
       switch (weatherId / 100)
       {
         case 2:     //Thunderstorm
-          button_changeState();
           // Put Thunderstorm first frame
           for (int passtime = 0; passtime <20; passtime++) {
             FastLED.clear();
@@ -999,7 +997,6 @@ void httpRequest() {
           break;
 
         case 3:     //Drizzle
-          button_changeState();
           // Put Drizzle first frame
           for (int passtime = 0; passtime <20; passtime++) {
             FastLED.clear();
@@ -1019,7 +1016,6 @@ void httpRequest() {
           break;
 
         case 5:     //Rain
-          button_changeState();
           // Put Rain first frame
           for (int passtime = 0; passtime <20; passtime++) {
             FastLED.clear();
@@ -1039,7 +1035,6 @@ void httpRequest() {
           break;
 
         case 7:     //Sun with clouds
-          button_changeState();
           // Put Sun with clouds first frame
           for (int passtime = 0; passtime <20; passtime++) {
             FastLED.clear();
@@ -1058,7 +1053,6 @@ void httpRequest() {
           }
           break;
         case 8:     //clouds
-          button_changeState();
           // Put Clouds first frame
           for (int passtime = 0; passtime <20; passtime++) {
             FastLED.clear();
@@ -1078,7 +1072,6 @@ void httpRequest() {
           break;
 
         default:    //Sun with clouds
-          button_changeState();
           // Put Sun with clouds first frame
           for (int passtime = 0; passtime <20; passtime++) {
             FastLED.clear();
