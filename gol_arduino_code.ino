@@ -20,6 +20,7 @@
 
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
+char api[] = OPENWEATHER_API; // your OpenWeatherMap API
 
 int status = WL_IDLE_STATUS;
 
@@ -904,7 +905,7 @@ void httpRequest() {
   {
     Serial.println("connecting...");
     // send the HTTP PUT request:
-    client.println("GET /data/2.5/weather?q=spain&appid=4483727fd8bd14c96f505ab796963203 HTTP/1.1");
+    client.println(api);
     client.println("Host: api.openweathermap.org");
     client.println("Connection: close");
     client.println();
@@ -928,7 +929,7 @@ void httpRequest() {
       return;
     }
     // Allocate the JSON document -- Used arduinojson.org/v6/assistant to compute the capacity.
-    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(0) + 2 * JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(13) + 270;
+    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(13)+280;
     DynamicJsonDocument doc(capacity);
 
     // Parse JSON object
@@ -936,6 +937,7 @@ void httpRequest() {
     if (error) {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(error.c_str());
+      Serial.print(capacity);
       return;
     }
 
