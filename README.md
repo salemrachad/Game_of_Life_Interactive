@@ -1,3 +1,4 @@
+```ruby
 # Interactive_Painting
 I am building an interactive painting for digital fabrication masters @ied madrid 
 
@@ -10,3 +11,4 @@ https://github.com/salemrachad/Interactive_Painting/wiki
 
 Concept:
 https://github.com/salemrachad/Interactive_Painting/wiki/Concept
+```
