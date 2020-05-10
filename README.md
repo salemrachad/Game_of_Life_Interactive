@@ -1,7 +1,7 @@
 
 # Interactive_Painting
 
-** * I am building an interactive painting for digital fabrication masters @ied madrid* **
+**bold I am building an interactive painting for digital fabrication masters @ied madrid**
 
 The IOT interactive painting can hang by your front door, or a hallway..
 When the painting senses motion, i.e someone exiting/entering the appartment it
@@ -14,5 +14,6 @@ matrixes together and easily controlled by the fastLED or neopixel Library. Ever
 that requires 5 mA so make sure to do the correct calculations and chose the correct power
 supply.
 
-You can find the documentation on my wiki:
-https://github.com/salemrachad/Interactive_Painting/wiki
+1.You can find the documentation on my wiki:
+  1.https://github.com/salemrachad/Interactive_Painting/wiki
+  1.https://github.com/salemrachad/Interactive_Painting/wiki/0.0-Concept
