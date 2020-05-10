@@ -14,6 +14,6 @@ matrixes together and easily controlled by the fastLED or neopixel Library. Ever
 that requires 5 mA so make sure to do the correct calculations and chose the correct power
 supply.
 
-1.You can find the documentation on my wiki:
-  1.https://github.com/salemrachad/Interactive_Painting/wiki
-  1.https://github.com/salemrachad/Interactive_Painting/wiki/0.0-Concept
+* You can find the documentation on my wiki:
+  * https://github.com/salemrachad/Interactive_Painting/wiki
+  * https://github.com/salemrachad/Interactive_Painting/wiki/0.0-Concept
