@@ -1,7 +1,7 @@
 
 # Interactive_Painting
 
-**bold *italic I am building an interactive painting for digital fabrication masters @ied madrid***
+** * I am building an interactive painting for digital fabrication masters @ied madrid* **
 
 The IOT interactive painting can hang by your front door, or a hallway..
 When the painting senses motion, i.e someone exiting/entering the appartment it
