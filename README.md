@@ -1,9 +1,9 @@
 
 # Interactive_Painting
-```Ruby
-I am building an interactive painting for digital fabrication masters @ied madrid 
-```
-I am creating a IOT interactive painting that can hang next to your front door. 
+
+**bold *italic I am building an interactive painting for digital fabrication masters @ied madrid***
+
+The IOT interactive painting can hang by your front door, or a hallway..
 When the painting senses motion, i.e someone exiting/entering the appartment it
 will display the Weather Information or snap a picture and use it as the initial
 state for Conway's Game of life. Where the idea is that life doesn't only happen to you.
