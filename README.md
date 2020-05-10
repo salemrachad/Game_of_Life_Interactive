@@ -1,4 +1,4 @@
-```ruby
+
 # Interactive_Painting
 I am building an interactive painting for digital fabrication masters @ied madrid 
 
@@ -12,10 +12,6 @@ I am going to be using a WS2812b as display. It has a good price, can connect mu
 matrixes together and easily controlled by the fastLED or neopixel Library. Every LED on
 that requires 5 mA so make sure to do the correct calculations and chose the correct power
 supply.
-```
-Documentation:
+
+You can find the documentation on my wiki:
 https://github.com/salemrachad/Interactive_Painting/wiki
-
-Concept:
-https://github.com/salemrachad/Interactive_Painting/wiki/Concept
-
