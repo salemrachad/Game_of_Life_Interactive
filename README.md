@@ -3,7 +3,7 @@
                                           Interactive Painting
 
 **I am building an interactive painting for my digital fabrication masters @ IED Madrid**
-Please the check complete documentation on my wiki page : *https://github.com/salemrachad/Interactive_Painting/wiki*
+  Please the check complete documentation on my wiki page : *https://github.com/salemrachad/Interactive_Painting/wiki*
 
 * The IoT interactive painting can hang by your front door or a hallway...
 When the painting senses motion, i.e someone exiting/entering the apartment it
