@@ -31,7 +31,7 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
 //   Serial.print(timeClient.getMinutes());
 //   Serial.print(":");
 //   Serial.println(timeClient.getSeconds());
-  //Serial.println(timeClient.getFormattedTime());
+//Serial.println(timeClient.getFormattedTime());
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Wifi Setup
@@ -631,7 +631,6 @@ void loop() {
       break;
 
     case 2: //Interactive module
-      NtpRequest();
       button_requestArrayFromSerial();
       pixels.clear();
       for (int i = 0; i < WIDTH * HEIGHT; i++) {
@@ -809,7 +808,6 @@ void button_requestArrayFromSerial() {
 }
 
 void button_changeState() {
-
   int reading = digitalRead(buttonPin12);
 
   // If the switch changed, due to noise or pressing:
@@ -847,7 +845,7 @@ void stateLedColor() {  //RGB LED color depending on gstate.
     analogWrite(Green_PIN, 0);
     analogWrite(Blue_PIN, 0);
   }
-   else if (gstate == 1) { //Color Green if gstate=1
+  else if (gstate == 1) { //Color Green if gstate=1
     analogWrite(Red_PIN, 0);
     analogWrite(Green_PIN, 255);
     analogWrite(Blue_PIN, 0);
@@ -857,7 +855,7 @@ void stateLedColor() {  //RGB LED color depending on gstate.
     analogWrite(Green_PIN, 0);
     analogWrite(Blue_PIN, 255);
   }
-   else if (gstate >= 3) {  //Reset if gstate=0 to maintain only 3 switch cases
+  else if (gstate >= 3) {  //Reset if gstate=0 to maintain only 3 switch cases
     gstate = 0;
   }
 }
@@ -926,6 +924,9 @@ void printWifiStatus() {
 }
 
 void httpRequest() {
+  timeClient.update();
+  int Hour = timeClient.getHours();
+
   // if there's a successful connection:
   if (client.connect("api.openweathermap.org", 443))
   {
@@ -955,7 +956,7 @@ void httpRequest() {
       return;
     }
     // Allocate the JSON document -- Used arduinojson.org/v6/assistant to compute the capacity.
-    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(13)+280;
+    const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(13) + 280;
     DynamicJsonDocument doc(capacity);
 
     // Parse JSON object
@@ -983,10 +984,29 @@ void httpRequest() {
     Serial.print("Humidity: ");
     Serial.println(weatherHumidity);
     Serial.println();
+    Serial.println(Hour);
+    Serial.println();
 
     if (weatherId == 800)   //clear
     {
-      for (int passtime = 0; passtime <60; passtime++) {
+      if ((Hour > 7) && (Hour < 19)) { //Sun or Moon
+        for (int passtime = 0; passtime < 8; passtime++) {
+          FastLED.clear();
+          for (int i = 0; i < NUMPIXELS; i++) {
+            leds[i] = pgm_read_dword(&(Clear1[i]));  // Read array from Flash
+          }
+          FastLED.show();
+          delay(1000);
+          // Put Thunderstorm second frame
+          FastLED.clear();
+          for (int i = 0; i < NUMPIXELS; i++) {
+            leds[i] = pgm_read_dword(&(Clear2[i]));
+          }
+          FastLED.show();
+          delay(1000);
+        }
+      }
+      for (int passtime = 0; passtime < 8; passtime++) {
         FastLED.clear();
         for (int i = 0; i < NUMPIXELS; i++) {
           leds[i] = pgm_read_dword(&(Clear1[i]));  // Read array from Flash
@@ -1007,116 +1027,227 @@ void httpRequest() {
       switch (weatherId / 100)
       {
         case 2:     //Thunderstorm
-          // Put Thunderstorm first frame
-          for (int passtime = 0; passtime <60; passtime++) {
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Thunderstorm1[i]));  // Read array from Flash
+          if ((Hour > 7) && (Hour < 19)) { //Sun
+            // Put Thunderstorm first frame
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Thunderstorm1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Thunderstorm second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Thunderstorm2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-            // Put Thunderstorm second frame
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Thunderstorm2[i]));
-            }
-            FastLED.show();
-            delay(1000);
+            break;
           }
+          else // Put Thunderstorm first frame //Moon
+
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Thunderstorm1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Thunderstorm second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Thunderstorm2[i]));
+              }
+              FastLED.show();
+              delay(1000);
+            }
           break;
 
         case 3:     //Drizzle
-          // Put Drizzle first frame
-          for (int passtime = 0; passtime <60; passtime++) {
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Drizzle1[i]));  // Read array from Flash
+          if ((Hour > 7) && (Hour < 19)) {
+            // Put Drizzle first frame
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Drizzle1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Drizzle second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Drizzle2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-            // Put Drizzle second frame
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Drizzle2[i]));
+            break;
+          } else
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Drizzle1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Drizzle second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Drizzle2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-          }
           break;
 
         case 5:     //Rain
           // Put Rain first frame
-          for (int passtime = 0; passtime <60; passtime++) {
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Rain1[i]));  // Read array from Flash
+          if ((Hour > 7) && (Hour < 19)) {
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Rain1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Rain second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Rain2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-            // Put Rain second frame
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Rain2[i]));
+            break;
+          } else
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Rain1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Rain second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Rain2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-          }
           break;
 
         case 7:     //Sun with clouds
-          // Put Sun with clouds first frame
-          for (int passtime = 0; passtime <60; passtime++) {
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
+          if ((Hour > 7) && (Hour < 19)) {
+            // Put Sun with clouds first frame
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Sun with clouds second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-            // Put Sun with clouds second frame
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(SunwithClouds2[i]));
+            break;
+          } else
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Sun with clouds second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-          }
           break;
+
         case 8:     //clouds
-          // Put Clouds first frame
-          for (int passtime = 0; passtime <60; passtime++) {
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Clouds1[i]));  // Read array from Flash
+          if ((Hour > 7) && (Hour < 19)) {
+            // Put Clouds first frame
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Clouds1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Clouds second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Clouds2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-            // Put Clouds second frame
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(Clouds2[i]));
+            break;
+          } else
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Clouds1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Clouds second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(Clouds2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-          }
           break;
 
         default:    //Sun with clouds
-          // Put Sun with clouds first frame
-          for (int passtime = 0; passtime <60; passtime++) {
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
+          if ((Hour > 7) && (Hour < 19)) {
+            // Put Sun with clouds first frame
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Sun with clouds second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-            // Put Sun with clouds second frame
-            FastLED.clear();
-            for (int i = 0; i < NUMPIXELS; i++) {
-              leds[i] = pgm_read_dword(&(SunwithClouds2[i]));
+            break;
+          } else
+            for (int passtime = 0; passtime < 8; passtime++) {
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds1[i]));  // Read array from Flash
+              }
+              FastLED.show();
+              delay(1000);
+              // Put Sun with clouds second frame
+              FastLED.clear();
+              for (int i = 0; i < NUMPIXELS; i++) {
+                leds[i] = pgm_read_dword(&(SunwithClouds2[i]));
+              }
+              FastLED.show();
+              delay(1000);
             }
-            FastLED.show();
-            delay(1000);
-          }
           break;
       }
     }
@@ -1128,18 +1259,4 @@ void httpRequest() {
     // if you couldn't make a connection:
     Serial.println("connection failed");
   }
-}
-
-void NtpRequest(){
-  timeClient.update();
-
-  Serial.print(daysOfTheWeek[timeClient.getDay()]);
-  Serial.print(", ");
-  Serial.print(timeClient.getHours());
-  Serial.print(":");
-  Serial.print(timeClient.getMinutes());
-  Serial.print(":");
-  Serial.println(timeClient.getSeconds());
-
-  delay(10000);
 }
