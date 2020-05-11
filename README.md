@@ -25,4 +25,4 @@ initial state, requiring no further input.
 * I am using Processing.exe to analyze color information and translate the image taken by the webcam to a 32 x 32 2D Matrix then pass it through serial to the Arduino. Sending a 1024 byte size array is a bit tricky and I am still working on it.
   * *https://github.com/salemrachad/Interactive_Painting/wiki/3.0-Interactive-display*
   
-Please check complete documentation on my wiki page : *https://github.com/salemrachad/Interactive_Painting/wiki*
+Please the check complete documentation on my wiki page : *https://github.com/salemrachad/Interactive_Painting/wiki*
