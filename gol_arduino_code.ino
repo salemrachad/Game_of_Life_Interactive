@@ -9,7 +9,31 @@
 // *
 // * By Rachad Salem
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+//NTPCLIENT
 
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
+const long utcOffsetInSeconds = 3600;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", utcOffsetInSeconds);
+
+// timeClient.begin();
+// timeClient.update();
+//
+//   Serial.print(daysOfTheWeek[timeClient.getDay()]);
+//   Serial.print(", ");
+//   Serial.print(timeClient.getHours());
+//   Serial.print(":");
+//   Serial.print(timeClient.getMinutes());
+//   Serial.print(":");
+//   Serial.println(timeClient.getSeconds());
+  //Serial.println(timeClient.getFormattedTime());
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Wifi Setup
 
 #include <WiFiNINA.h>
@@ -125,7 +149,7 @@ int lastRecordedTime = 0;
 //state 2 will be an interactive LED - using processing and a webcam -
 
 int gstate = 0;
-
+bool sun = false;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Flash memory Stored Pictures for Weather Display
@@ -569,6 +593,7 @@ void setup() {
 
   //Attempt to Connect to wifi
   connect2Wifi();
+  timeClient.begin();
 
   //Sarting Fast LED Library
   FastLED.addLeds<NEOPIXEL, PIN>(leds, NUMPIXELS);
@@ -606,6 +631,7 @@ void loop() {
       break;
 
     case 2: //Interactive module
+      NtpRequest();
       button_requestArrayFromSerial();
       pixels.clear();
       for (int i = 0; i < WIDTH * HEIGHT; i++) {
@@ -945,6 +971,7 @@ void httpRequest() {
     float weatherTemperature = doc["main"]["temp"].as<float>();
     int weatherHumidity = doc["main"]["humidity"].as<int>();
 
+
     //Disconnect
     client.stop();
 
@@ -1101,4 +1128,18 @@ void httpRequest() {
     // if you couldn't make a connection:
     Serial.println("connection failed");
   }
+}
+
+void NtpRequest(){
+  timeClient.update();
+
+  Serial.print(daysOfTheWeek[timeClient.getDay()]);
+  Serial.print(", ");
+  Serial.print(timeClient.getHours());
+  Serial.print(":");
+  Serial.print(timeClient.getMinutes());
+  Serial.print(":");
+  Serial.println(timeClient.getSeconds());
+
+  delay(10000);
 }
