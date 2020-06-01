@@ -1,5 +1,5 @@
 <p align="center">
-<img width="600" height="400" src=https://user-images.githubusercontent.com/61739179/79780058-a4d5b700-833b-11ea-9721-27b420642cf1.gif>
+<img width="550" height="350" src=https://user-images.githubusercontent.com/61739179/79780058-a4d5b700-833b-11ea-9721-27b420642cf1.gif>
 </p>
                                           Interactive Painting
 
