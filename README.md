@@ -1,5 +1,6 @@
-![main-page-sketch](https://user-images.githubusercontent.com/61739179/79780058-a4d5b700-833b-11ea-9721-27b420642cf1.gif)
-
+<p align="center">
+<img width="350" height="650" src=https://user-images.githubusercontent.com/61739179/79780058-a4d5b700-833b-11ea-9721-27b420642cf1.gif>
+</p>
                                           Interactive Painting
 
 **I am building an interactive painting for my digital fabrication masters @ IED Madrid**  
